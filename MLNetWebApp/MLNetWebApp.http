@@ -1,0 +1,6 @@
+@MLNetWebApp_HostAddress = http://localhost:5226
+
+GET {{MLNetWebApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

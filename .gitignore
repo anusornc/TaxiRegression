@@ -1,0 +1,57 @@
+# .gitignore for .NET, ASP.NET Core, and ML.NET projects
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# DotCover
+.idea/
+*.dotCover
+
+# Rider
+.idea/
+*.sln.iml
+
+# Logs
+*.log
+
+# ML.NET Model Builder
+*.mbconfig
+*.mlnet
+
+# Data files
+*.csv
+*.tsv
+*.data
+*.dataset
+
+# Jupyter Notebooks
+*.ipynb_checkpoints
+
+# Others
+*.db
+*.sqlite
+*.pdb
+*.cache
+*.bak
+*.swp
+*.tmp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Python virtual environments (if used for ML.NET)
+.venv/
+venv/

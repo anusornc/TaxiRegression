@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML.NET Taxi Fare Predictor</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); max-width: 500px; margin: auto; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="number"], select { width: calc(100% - 22px); padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background-color: #e9e9e9; font-size: 1.1em; font-weight: bold; }
+        .error { color: red; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ทำนายค่าโดยสารแท็กซี่ด้วย ML.NET</h1>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+
+        <label for="vendorId">Vendor ID:</label>
+        <select id="vendorId">
+            <option value="CMT">CMT</option>
+            <option value="VTS">VTS</option>
+        </select>
+
+        <label for="rateCode">Rate Code:</label>
+        <input type="number" id="rateCode" value="1" min="1" max="6">
+
+        <label for="passengerCount">จำนวนผู้โดยสาร:</label>
+        <input type="number" id="passengerCount" value="1" min="1">
+
+        <label for="tripTimeInSecs">ระยะเวลาเดินทาง (วินาที):</label>
+        <input type="number" id="tripTimeInSecs" value="600" min="0">
+
+        <label for="tripDistance">ระยะทาง (ไมล์):</label>
+        <input type="number" id="tripDistance" value="5.2" step="0.1" min="0">
+
+        <label for="paymentType">ประเภทการชำระเงิน:</label>
+        <select id="paymentType">
+            <option value="CRD">Credit Card</option>
+            <option value="CSH">Cash</option>
+        </select>
+
+        <button onclick="predictFare()">ทำนายค่าโดยสาร</button>
+
+        <div id="result">
+            ค่าทำนาย: <span id="predictedFare">รอการทำนาย...</span>
+        </div>
+    </div>
+
+    <script>
+        // *** IMPORTANT: ต้องเปลี่ยน URL นี้ให้ตรงกับ URL ของ API ของคุณ! ***
+        // ตรวจสอบ Port ที่ dotnet run แสดงใน Terminal ของคุณ
+        const API_URL = 'http://localhost:5226/Prediction/predict-fare';
+
+        async function predictFare() {
+            const errorMessageDiv = document.getElementById('error-message');
+            errorMessageDiv.style.display = 'none'; // ซ่อนข้อความ error เก่า
+            errorMessageDiv.textContent = '';
+
+            try {
+                const vendorId = document.getElementById('vendorId').value;
+                const rateCode = parseFloat(document.getElementById('rateCode').value);
+                const passengerCount = parseFloat(document.getElementById('passengerCount').value);
+                const tripTimeInSecs = parseFloat(document.getElementById('tripTimeInSecs').value);
+                const tripDistance = parseFloat(document.getElementById('tripDistance').value);
+                const paymentType = document.getElementById('paymentType').value;
+
+                // สร้าง Object ที่มี Structure ตรงกับ ModelInput ของ C#
+                const dataToSend = {
+                    vendor_id: vendorId,
+                    rate_code: rateCode,
+                    passenger_count: passengerCount,
+                    trip_time_in_secs: tripTimeInSecs,
+                    trip_distance: tripDistance,
+                    payment_type: paymentType,
+                    fare_amount: 0 // ไม่จำเป็นต้องใส่ค่าจริง เพราะนี่คือ Label ที่เราจะทำนาย
+                };
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/plain' // ระบุว่าเราคาดหวัง text/plain กลับมา (เนื่องจาก API คืน float)
+                    },
+                    body: JSON.stringify(dataToSend) // แปลง JavaScript object เป็น JSON string
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text(); // อ่านข้อความ error
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                }
+
+                const predictedFare = await response.text(); // เนื่องจาก API คืน float เราจึงอ่านเป็น text ก่อน
+
+                document.getElementById('predictedFare').textContent = parseFloat(predictedFare).toFixed(2); // แสดงผลลัพธ์ทศนิยม 2 ตำแหน่ง
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+                errorMessageDiv.textContent = `Error: ${error.message}. โปรดตรวจสอบว่า API ทำงานอยู่และ CORS ถูกตั้งค่าถูกต้อง`;
+                errorMessageDiv.style.display = 'block';
+                document.getElementById('predictedFare').textContent = 'เกิดข้อผิดพลาด';
+            }
+        }
+    </script>
+</body>
+</html>
